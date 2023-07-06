@@ -19,6 +19,11 @@ function App() {
         <div>Февр.</div>
         <div>Март</div>
       </div>
+      <div className='week'>
+        <div>Пн</div>
+        <div>Ср</div>
+        <div>Пт</div>
+      </div>
        <ContributionGraph /> 
     </div>
   );

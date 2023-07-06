@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import './style.css';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import "./style.css";
 
 const ContributionGraph = () => {
   const [contributions, setContributions] = useState([]);
   const [selectedContribution, setSelectedContribution] = useState(null);
+  const [isHovered, setIsHovered] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -12,15 +13,16 @@ const ContributionGraph = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('https://dpg.gg/test/calendar.json');
+      const response = await axios.get("https://dpg.gg/test/calendar.json");
       const data = response.data;
 
-      if (typeof data === 'object' && data !== null) {
+      if (typeof data === "object" && data !== null) {
         const formattedData = Object.entries(data).map(([date, count]) => ({
           date,
-          contributions: count
+          contributions: count,
         }));
         setContributions(formattedData);
+        setIsHovered(new Array(formattedData.length).fill(false));
       }
     } catch (error) {
       console.log(error);
@@ -29,19 +31,33 @@ const ContributionGraph = () => {
 
   const renderContributions = () => {
     const colors = {
-      0: '#EDEDED',
-      2: '#ACD5F2',
-      3: '#7FA8C9',
-      4: '#527BA0',
-      30: '#254E77',
+      0: "#EDEDED",
+      2: "#ACD5F2",
+      3: "#7FA8C9",
+      4: "#527BA0",
+      30: "#254E77",
     };
 
     if (!Array.isArray(contributions) || contributions.length === 0) {
       return null;
     }
 
-    return contributions.map((day, index) => {
+    const sortedContributions = contributions.sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    );
+
+    const currentDate = new Date();
+    const currentDateOffset = 50 * 7; 
+
+    return sortedContributions.map((day, index) => {
       const { date, contributions } = day;
+      const cellDate = new Date(date);
+      const daysDiff = Math.floor(
+        (currentDate - cellDate) / (1000 * 60 * 60 * 24)
+      );
+      const columnIndex = Math.max(currentDateOffset - daysDiff, 0);
+      const rowIndex = cellDate.getDay();
+
       const color =
         contributions >= 30
           ? colors[30]
@@ -57,11 +73,38 @@ const ContributionGraph = () => {
         <span
           key={index}
           className="contribution-cell"
-          title={`Дата: ${formatDate(date)}\nКоличество вкладов: ${contributions}`}
-          style={{ backgroundColor: color }}
-          onClick={() => handleContributionClick(day)}
-        />
+          title={`Дата: ${formatDate(
+            date
+          )}\nКоличество вкладов: ${contributions}`}
+          style={{
+            backgroundColor: color,
+            gridColumn: columnIndex + 1,
+            gridRow: rowIndex + 1,
+          }}
+          onMouseEnter={() => handleContributionHover(true, index)}
+          onMouseLeave={() => handleContributionHover(false, index)}
+        >
+          {contributions > 0 && (
+            <span className="contribution-count"></span>
+          )}
+          {isHovered[index] && (
+            <div className="modal">
+              <div className="modal-content">
+              <p>{contributions} contributions</p>
+                <p>{formatDate(date)}</p>
+              </div>
+            </div>
+          )}
+        </span>
       );
+    });
+  };
+
+  const handleContributionHover = (isHovered, index) => {
+    setIsHovered((prevState) => {
+      const newState = [...prevState];
+      newState[index] = isHovered;
+      return newState;
     });
   };
 
@@ -71,8 +114,13 @@ const ContributionGraph = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('ru-RU', options);
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    return date.toLocaleDateString("ru-RU", options);
   };
 
   const renderModal = () => {
@@ -85,12 +133,14 @@ const ContributionGraph = () => {
     return (
       <div className="modal">
         <div className="modal-content">
-          <span className="close-button" onClick={() => setSelectedContribution(null)}>
+          <div>{contributions} contributions</div>
+          <div>{formatDate(date)}</div>
+          <span
+            className="close-button"
+            onClick={() => setSelectedContribution(null)}
+          >
             &times;
           </span>
-          <p>{contributions} contributions </p>
-          <p> {formatDate(date)}</p>
-          
         </div>
       </div>
     );
