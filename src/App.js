@@ -1,5 +1,3 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import ContributionGraph from './components/contribut/ContributionGraph';
 import "./App.css";
 
@@ -7,7 +5,20 @@ function App() {
 
   return (
     <div className='box'>
-      <h1>Contribution Graph</h1>
+      <div className='month'>
+        <div>Апр.</div>
+        <div>Май</div>
+        <div>Июнь</div>
+        <div>Июль</div>
+        <div>Авг.</div>
+        <div>Сент.</div>
+        <div>Окт.</div>
+        <div>Нояб.</div>
+        <div>Дек.</div>
+        <div>Янв.</div>
+        <div>Февр.</div>
+        <div>Март</div>
+      </div>
        <ContributionGraph /> 
     </div>
   );

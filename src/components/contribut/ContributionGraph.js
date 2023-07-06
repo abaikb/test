@@ -4,6 +4,7 @@ import './style.css';
 
 const ContributionGraph = () => {
   const [contributions, setContributions] = useState([]);
+  const [selectedContribution, setSelectedContribution] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -34,11 +35,11 @@ const ContributionGraph = () => {
       4: '#527BA0',
       30: '#254E77',
     };
-  
+
     if (!Array.isArray(contributions) || contributions.length === 0) {
       return null;
     }
-  
+
     return contributions.map((day, index) => {
       const { date, contributions } = day;
       const color =
@@ -51,17 +52,56 @@ const ContributionGraph = () => {
           : contributions >= 2
           ? colors[2]
           : colors[0];
-  
+
       return (
         <span
           key={index}
           className="contribution-cell"
-          title={`Date: ${date}\nContributions: ${contributions}`}
+          title={`Дата: ${formatDate(date)}\nКоличество вкладов: ${contributions}`}
           style={{ backgroundColor: color }}
+          onClick={() => handleContributionClick(day)}
         />
       );
     });
   };
+
+  const handleContributionClick = (contribution) => {
+    setSelectedContribution(contribution);
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('ru-RU', options);
+  };
+
+  const renderModal = () => {
+    if (!selectedContribution) {
+      return null;
+    }
+
+    const { date, contributions } = selectedContribution;
+
+    return (
+      <div className="modal">
+        <div className="modal-content">
+          <span className="close-button" onClick={() => setSelectedContribution(null)}>
+            &times;
+          </span>
+          <p>{contributions} contributions </p>
+          <p> {formatDate(date)}</p>
+          
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="contribution-graph">
+      {renderContributions()}
+      {renderModal()}
+    </div>
+  );
 };
 
 export default ContributionGraph;
